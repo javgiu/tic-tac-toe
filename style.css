@@ -1,0 +1,154 @@
+*,
+*::after,
+*::before {
+    box-sizing: border-box;
+    margin: 0;
+    padding: 0;
+}
+
+:root {
+    --dark-color: rgb(4, 7, 37);
+    --dark-shadow: 4px 4px 10px 3px black;
+    --hover-color: rgb(54, 54, 119);
+}
+
+html {
+    font-family: 'Courier New', Courier, monospace;
+}
+
+body {
+    font-family: inherit;
+    height: 100vh;
+    background-color: var(--dark-color);
+    position: relative;
+}
+
+.board-container {
+    width: 400px;
+    height: 400px;
+    position: absolute;
+    top: 50%;
+    left: 50%;
+    transform: 
+        translateX(-50%)
+        translateY(-50%);
+    background-color: var(--dark-color);
+    border-radius: 20px;
+    overflow: hidden;
+    box-shadow: var(--dark-shadow);
+
+
+    display: grid;
+    grid-template-columns: repeat(3, 1fr);
+    grid-template-rows: repeat(3, 1fr);
+    gap: 10px;
+}
+
+.cell {
+    background-color: rgb(121, 81, 255);
+    position: relative;
+    box-shadow: var(--dark-shadow);
+}
+
+.cell:hover {
+    background-color: var(--hover-color);
+    cursor: pointer;
+}
+
+.cell.o {
+    background-color: blue;
+}
+
+.cell.x {
+    background-color: red;
+}
+
+/* .cell:active {
+    background-color: red;
+} */
+
+.cell.o::before {
+    content: "";
+    width: 100px;
+    height: 100px;
+    border: 20px solid rgb(0, 0, 0);
+    position: absolute;
+    top: 50%;
+    left: 50%;
+    transform: 
+        translateX(-50%)
+        translateY(-50%);
+    border-radius: 50%;    
+}
+
+/* .cell:active::before {
+    content: "";
+    width: 100px;
+    height: 100px;
+    border: 20px solid rgb(0, 0, 0);
+    position: absolute;
+    top: 50%;
+    left: 50%;
+    transform: 
+        translateX(-50%)
+        translateY(-50%);
+    border-radius: 50%;    
+} */
+
+.cell.x::before {
+    content: "";
+    background-color: black;
+    width: 100px;
+    height: 20px;
+    position: absolute;
+    top: 50%;
+    left: 50%;
+    transform: 
+        translateX(-50%)
+        translateY(-50%)
+        rotate(45deg);
+}
+
+.cell.x::after {
+    content: "";
+    background-color: black;
+    width: 100px;
+    height: 20px;
+    position: absolute;
+    top: 50%;
+    left: 50%;
+    transform: 
+        translateX(-50%)
+        translateY(-50%)
+        rotate(-45deg);
+}
+
+/* .cell:active::before {
+    content: "";
+    background-color: black;
+    width: 100px;
+    height: 20px;
+    position: absolute;
+    top: 50%;
+    left: 50%;
+    transform: 
+        translateX(-50%)
+        translateY(-50%)
+        rotate(45deg);
+} */
+
+/* .cell:active::after {
+    content: "";
+    background-color: black;
+    width: 100px;
+    height: 20px;
+    position: absolute;
+    top: 50%;
+    left: 50%;
+    transform: 
+        translateX(-50%)
+        translateY(-50%)
+        rotate(-45deg);
+} */
+
+
