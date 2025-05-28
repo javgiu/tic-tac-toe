@@ -11,12 +11,17 @@ function Gameboard() {
         }
     }
 
+    // Set an id for each cell
+    board.forEach(array => array.forEach(cell => cell.setId(board.flat().indexOf(cell))));
+
+    // Search DOM
     const boardContainer = document.querySelector(".board-container");
 
     const renderBoard = () => {
         boardContainer.innerHTML = "";
         board.forEach(array => array.forEach(cell => {
             const newCell = document.createElement("div");
+            newCell.setAttribute("data-id", cell.getId());
             newCell.className = "cell";
             if(cell.getValue() === "X") {
                 newCell.classList.add("x");
@@ -33,8 +38,25 @@ function Gameboard() {
 
     const getBoard = () => board;
 
-    const changeCellValue = (row, column, token) => {
-        board[row][column].addToken(token);
+    const getBoardContainer = () => boardContainer;
+
+    const getCells = () => Array.from(boardContainer.children);
+
+
+    //  Working here  //
+    const changeCellValue = (e, token) => {
+        if(e.target.className === "cell") {
+            board.forEach( array => {
+
+                const cellToChange = array.find(cell => cell.getId() == e.target.dataset.id);
+
+                if(cellToChange === undefined) {
+                    return
+                }
+
+                cellToChange.addToken(token);
+            })
+        }
     };
 
     const printBoard = () => {
@@ -44,11 +66,10 @@ function Gameboard() {
 
     renderBoard();
 
-
-    return {getBoard, printBoard, changeCellValue, lines, renderBoard}
+    return {getBoard, printBoard, changeCellValue, lines, renderBoard, getBoardContainer, getCells}
 
 }
-// // Working here // 
+
 function Lines() {
     const diagonals = [];
     const verticals = [];
@@ -56,7 +77,7 @@ function Lines() {
 
     const getHorizontals = (board) => {
         for(let i = 0; i < board.length; i++) {
-            horizontals[i] = board[i].map(cell => cell.getValue());
+            horizontals[i] = board[i].map(cell => cell);
         }
         return horizontals ;
     };
@@ -68,7 +89,7 @@ function Lines() {
         for(let i = 0; i < columns; i++) {
             verticals[i] = [];
             for(let j = 0; j < rows; j++) {
-                verticals[i].push(board[j][i].getValue());
+                verticals[i].push(board[j][i]);
             }
         }
 
@@ -80,11 +101,11 @@ function Lines() {
             diagonals[i] = [];
             if (i === 0) {
                 for(let j = 0; j < 3; j++) {
-                    diagonals[i].push(board[j][j].getValue());
+                    diagonals[i].push(board[j][j]);
                 }
             } else {
                 for(let j = 0, k = 2; j < board.length; j++, k--) {
-                    diagonals[i].push(board[j][k].getValue());
+                    diagonals[i].push(board[j][k]);
                 }
             }
         }
@@ -99,19 +120,19 @@ function Lines() {
 
 function Cell() {
     let value = 0;
-
-    // Way to select cell when click it
-    // let id = 0;
-
-    // const setId = () => id = 
+    let id = 0;
 
     const addToken = (token) => {
         value = token;
     };
 
+    const setId = (newId) => id = newId;
+
     const getValue = () => value;
 
-    return {addToken, getValue};
+    const getId = () => id;
+
+    return {addToken, getValue, setId, getId};
 }
 
 function GameController(
@@ -136,9 +157,18 @@ function GameController(
     let activePlayer = players[0];
 
     // Trying to set the events 
-    // const setEvents = () => {
 
-    // };
+    function fireEvent(e) {
+            playRound(e, getActivePlayer().token);
+    };
+
+    const setEvents = () => {
+        board.getBoardContainer().addEventListener("click", fireEvent);
+    };
+
+    const removeEvents = () => {
+         board.getBoardContainer().removeEventListener("click", fireEvent);
+    };
 
     const switchPlayerTurn = () => {
         activePlayer = activePlayer === players[0] ? players[1] : players[0];
@@ -146,63 +176,61 @@ function GameController(
 
     const getActivePlayer = () => activePlayer;
 
-    const printNewRound = () => {
-        console.table(board.printBoard());
-        console.log(`${getActivePlayer().name}'s turn ...`);
-    };
-
-    // Working on that //
+    // const printNewRound = () => {
+    //     console.table(board.printBoard());
+    //     console.log(`${getActivePlayer().name}'s turn ...`);
+    // };
     
     const checkWinner = (array) => {
         array.forEach(array => {
-            if(array[0] === array[1] && array[0] === array[2] && array[0] !== 0) {
-                winner = array[0];
+            if(array[0].getValue() === array[1].getValue() && array[0].getValue() === array[2].getValue() && array[0].getValue() !== 0) {
+                winner = array[0].getValue();
                 console.log("We have a winner " + winner);
+
+                const winnerCells = [];
+                for(let i = 0; i < 3; i++) {
+                    winnerCells.push(board.getCells().find(cell => cell.dataset.id == array[i].getId()));
+                }
+                console.log(winnerCells)
+                winnerCells.forEach(cell => cell.classList.add("winner"));
                 return;
             }
         });
     };
 
+    
+    const playRound = (e, token) => {
 
-    const playRound = (row, column) => {
-        console.log(
-            `${getActivePlayer().name} plays in (${row}, ${column})`
-        );
-
-        if(board.printBoard()[row][column] !== 0) {
+        if(e.target.classList.contains("x") || e.target.classList.contains("o")) {
             console.log("This cell is full")
             return 0;
         }
 
-        board.changeCellValue(row, column, getActivePlayer().token);
+        board.changeCellValue(e, getActivePlayer().token);
+        board.renderBoard();
 
         checkWinner(board.lines.getDiagonals(board.getBoard()));
         checkWinner(board.lines.getHorizontals(board.getBoard()));
-        checkWinner(board.lines.getVerticals(board.getBoard()))
+        checkWinner(board.lines.getVerticals(board.getBoard()));
 
         if(winner !== null) {
             console.log("Player: " + players.find(player => player.token == winner).name + " wins the entire Game. Play Again?");
-           console.table(board.printBoard());
-
+            console.table(board.printBoard());
+            removeEvents();
             return;
         } else if (!(board.printBoard().flat().includes(0))) {
-            console.log("Ties!")
+            console.log("Ties!");
             console.table(board.printBoard());
-            
             return;
         } else {
-            board.renderBoard();
             switchPlayerTurn();
-            printNewRound();
         }
-
     };
 
-    printNewRound();
+    setEvents();
 
 
-
-return {getActivePlayer, playRound, board, checkWinner, players};
+    return {getActivePlayer, playRound, board, checkWinner, players};
 
 };
 
