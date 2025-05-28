@@ -15,7 +15,8 @@ function Gameboard() {
     board.forEach(array => array.forEach(cell => cell.setId(board.flat().indexOf(cell))));
 
     // Search DOM
-    const boardContainer = document.querySelector(".board-container");
+    const gameMainSection = document.querySelector(".game-main");
+    const boardContainer = gameMainSection.lastElementChild;
 
     const renderBoard = () => {
         boardContainer.innerHTML = "";
@@ -39,6 +40,8 @@ function Gameboard() {
     const getBoard = () => board;
 
     const getBoardContainer = () => boardContainer;
+
+    const getMainSection = () => gameMainSection;
 
     const getCells = () => Array.from(boardContainer.children);
 
@@ -66,7 +69,7 @@ function Gameboard() {
 
     renderBoard();
 
-    return {getBoard, printBoard, changeCellValue, lines, renderBoard, getBoardContainer, getCells}
+    return {getBoard, printBoard, changeCellValue, lines, renderBoard, getBoardContainer, getCells, getMainSection}
 
 }
 
@@ -140,15 +143,21 @@ function GameController(
     playerTwoName = "Player 2"
 ) {
     const board = Gameboard();
+
+    const startSection = StartSection();
+
+    const scorePanel = Scores();
     
     const players = [
         {
-            name: playerOneName,
+            name: "",
             token: "X",
+            score: 0,
         },
         {
-            name: playerTwoName,
+            name: "",
             token: "O",
+            score: 0,
         }
     ];
 
@@ -156,22 +165,60 @@ function GameController(
 
     let activePlayer = players[0];
 
+    const restartButton = document.querySelector(".restart-button");
+
     // Trying to set the events 
 
-    function fireEvent(e) {
+    function playEvent(e) {
             playRound(e, getActivePlayer().token);
     };
 
     const setEvents = () => {
-        board.getBoardContainer().addEventListener("click", fireEvent);
+        board.getBoardContainer().addEventListener("click", playEvent);
+
+        startSection.getStartButton().addEventListener("click", function() {
+            players[0].name = startSection.getPlayerOneName() === "" ? playerOneName : startSection.getPlayerOneName();
+            players[1].name = startSection.getPlayerTwoName() === "" ? playerTwoName : startSection.getPlayerTwoName();
+
+            renderPlayersNames();
+
+            renderPlayersScores();
+
+            startSection.getStartSection().classList.add("invisible");
+            board.getMainSection().classList.remove("invisible");
+        });
+
+        restartButton.addEventListener("click", restart);
     };
 
     const removeEvents = () => {
-         board.getBoardContainer().removeEventListener("click", fireEvent);
+         board.getBoardContainer().removeEventListener("click", playEvent);
+    };
+
+    // Working here
+    const restart = () => {
+        winner == players[0] ? activePlayer = players[1] : activePlayer = players[0];
+        scorePanel.highlightPlayer(activePlayer.name);
+        winner = null;
+        board.getBoard().forEach(array => array.forEach(cell => cell.addToken(0)));
+        board.renderBoard();
+        setEvents();
+        restartButton.classList.add("invisible");
+    }
+
+    const renderPlayersScores = () => {
+        scorePanel.renderPlayerOneScore(players[0].score);
+        scorePanel.renderPlayerTwoScore(players[1].score);
+    };
+
+    const renderPlayersNames = () => {
+        scorePanel.renderPlayerOneName(players[0].name);
+        scorePanel.renderPlayerTwoName(players[1].name);
     };
 
     const switchPlayerTurn = () => {
         activePlayer = activePlayer === players[0] ? players[1] : players[0];
+        scorePanel.highlightPlayer(activePlayer.name);
     }; 
 
     const getActivePlayer = () => activePlayer;
@@ -184,8 +231,8 @@ function GameController(
     const checkWinner = (array) => {
         array.forEach(array => {
             if(array[0].getValue() === array[1].getValue() && array[0].getValue() === array[2].getValue() && array[0].getValue() !== 0) {
-                winner = array[0].getValue();
-                console.log("We have a winner " + winner);
+                winner = players.find(player => player.token == array[0].getValue());
+                console.log("We have a winner " + winner.name);
 
                 const winnerCells = [];
                 for(let i = 0; i < 3; i++) {
@@ -214,16 +261,22 @@ function GameController(
         checkWinner(board.lines.getVerticals(board.getBoard()));
 
         if(winner !== null) {
-            console.log("Player: " + players.find(player => player.token == winner).name + " wins the entire Game. Play Again?");
-            console.table(board.printBoard());
+            console.log("Player: " + winner.name + " wins the entire Game. Play Again?");
+
+            winner.score++;
+
+            renderPlayersScores();
+
             removeEvents();
+            restartButton.classList.remove("invisible");
             return;
         } else if (!(board.printBoard().flat().includes(0))) {
-            console.log("Ties!");
-            console.table(board.printBoard());
+            restartButton.classList.remove("invisible");
+            // Add a results div where show the result or something like that
             return;
         } else {
             switchPlayerTurn();
+            scorePanel
         }
     };
 
@@ -232,6 +285,57 @@ function GameController(
 
     return {getActivePlayer, playRound, board, checkWinner, players};
 
+};
+
+function StartSection() {
+    const gameStartSection = document.querySelector(".game-start");
+    const form = gameStartSection.firstElementChild;
+    const startButton = form.elements[2];
+    const playerOneInput = form.elements[0];
+    const playerTwoInput = form.elements[1];
+
+    const getPlayerOneName = () => playerOneInput.value;
+    const getPlayerTwoName = () => playerTwoInput.value;
+    const getStartButton  = () => startButton;
+    const getStartSection = () => gameStartSection;
+
+    return {getPlayerOneName, getPlayerTwoName, getStartButton, getStartSection};
+
+};
+
+function Scores() {
+    const scoresPanel = document.querySelector(".score-panel");
+    const playerOneDiv = scoresPanel.children.item(1);
+    const playerTwoDiv = scoresPanel.children.item(2);
+    const playerOneText = playerOneDiv.firstElementChild;
+    const playerTwoText = playerTwoDiv.firstElementChild;
+    const playerOneScore = playerOneDiv.lastElementChild.firstElementChild;
+    const playerTwoScore = playerTwoDiv.lastElementChild.firstElementChild;
+    
+
+    const getPlayerOneName = () => playerOneText.innerText;
+
+    const renderPlayerOneName = (name) => playerOneText.innerText = name;
+
+    const getPlayerTwoName = () => playerTwoText.innerText;
+
+    const renderPlayerTwoName = (name) => playerTwoText.innerText = name;
+
+    const renderPlayerOneScore = (score) => playerOneScore.innerText = score;
+
+    const renderPlayerTwoScore = (score) => playerTwoScore.innerText = score;
+
+    const highlightPlayer = (activePlayerName) => {
+        if(activePlayerName == playerOneText.innerText) {
+            playerOneDiv.classList.add("highlight")
+            playerTwoDiv.classList.remove("highlight");
+        } else {
+            playerTwoDiv.classList.add("highlight");
+            playerOneDiv.classList.remove("highlight");
+        }
+    }
+
+    return {getPlayerOneName, renderPlayerOneName, renderPlayerOneScore, getPlayerTwoName, renderPlayerTwoName, renderPlayerTwoScore, highlightPlayer}
 };
 
 const game = GameController();

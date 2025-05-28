@@ -10,21 +10,43 @@
     <script src="./main.js" defer></script>
 
     <div class="game">
+
         <h1 class="title">Tic Tac Toe</h1>
-        <div class="game-main">
+        <section class="game-start">
+
+            <form action="">
+
+                <p class="flex-column-group">
+                    <label for="player1-name">Player 1 Name</label>
+                    <input type="text" id="player1-name" placeholder="Player 1">
+                </p>
+                <p class="flex-column-group">
+                    <label for="player2-name">Player 2 Name</label>
+                    <input type="text" id="player2-name" placeholder="Player 2">
+                </p>
+
+                <button type="button" class="start-button">Start Game</button>
+
+            </form>
+
+        </section> 
+
+        <section class="game-main invisible">
             <div class="score-panel">
                 <h2>Scores</h2>
-                <div class="player1">
-                    <p class="player-name">Player1</p>
-                    <p class="player-score">Score: <span class="score">0</span></p>
+                <div class="player1 highlight">
+                    <p class="player-name"></p>
+                    <p class="player-score">Score: <span class="score"></span></p>
                 </div>
                 <div class="player2">
-                    <p class="player-name">Player2</p>
-                    <p class="player-score">Score: <span class="score">0</span></p>
+                    <p class="player-name"></p>
+                    <p class="player-score">Score: <span class="score"></span></p>
                 </div>
             </div>
             <div class="board-container"></div>
-        </div>
+        </section>
+        <button class="restart-button invisible">Restart</button>
+
     </div>
 </body>
 </html>
